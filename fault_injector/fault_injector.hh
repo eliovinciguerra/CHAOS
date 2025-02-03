@@ -1,15 +1,17 @@
 #ifndef __FAULT_INJECTOR_HH__
 #define __FAULT_INJECTOR_HH__
 
-#include "sim/sim_object.hh"
-#include "params/FaultInjector.hh"
-#include "cpu/o3/cpu.hh"
 #include <iostream>
 #include <random>
 #include <bitset>
+#include <fstream>
+
+#include "params/FaultInjector.hh"
+
+#include "sim/sim_object.hh"
 #include "sim/cur_tick.hh"
 #include "sim/eventq.hh"
-#include <fstream>
+#include "cpu/o3/cpu.hh"
 
 namespace gem5
 {

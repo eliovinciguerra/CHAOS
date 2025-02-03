@@ -1,24 +1,24 @@
-#include "params/FaultInjector.hh"
-#include <iostream>
-#include <list>
-#include <queue>
-#include <set>
-#include <vector>
 #include "fault_injector/fault_injector.hh"
-#include "cpu/o3/cpu.hh"
+#include "params/FaultInjector.hh"
+
+#include <cassert>
+
 #include <iostream>
+#include <fstream>
+#include <vector>
 #include <random>
 #include <bitset>
-#include "sim/system.hh"
-#include "sim/cur_tick.hh"
-#include <cassert>
-#include "cpu/o3/dyn_inst.hh" 
-#include "cpu/thread_context.hh"
-#include "arch/generic/isa.hh"
 #include <unordered_map>
 #include <functional>
 #include <string>     
-#include <fstream>
+
+#include "sim/system.hh"
+#include "sim/cur_tick.hh"
+#include "cpu/o3/cpu.hh"
+#include "cpu/o3/dyn_inst.hh" 
+#include "cpu/thread_context.hh"
+#include "arch/generic/isa.hh"
+
 
 namespace gem5
 {
