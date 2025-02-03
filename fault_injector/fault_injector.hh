@@ -118,6 +118,13 @@ namespace gem5
         */
         ~FaultInjector();
 
+        /**
+         * Random cose
+         */
+        std::random_device rd;
+        std::mt19937 rng;
+        std::geometric_distribution<unsigned> inter_fault_cycles_dist;
+
     public:
         /**
          * Funzione che inietta un fault nei registri di un thread specificato.
@@ -139,7 +146,7 @@ namespace gem5
         void processFault(ThreadID tid);
 
         /**
-         * Pianifica l'iniezione di un fault ogni ciclo di clock.
+         * Tick del SimObject: introduce fault e schedula prossimo fault.
          */
         void tick();
 
