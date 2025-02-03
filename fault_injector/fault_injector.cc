@@ -1,24 +1,24 @@
-#include "params/FaultInjector.hh"
-#include <iostream>
-#include <list>
-#include <queue>
-#include <set>
-#include <vector>
 #include "fault_injector/fault_injector.hh"
-#include "cpu/o3/cpu.hh"
+#include "params/FaultInjector.hh"
+
+#include <cassert>
+
 #include <iostream>
+#include <fstream>
+#include <vector>
 #include <random>
 #include <bitset>
-#include "sim/system.hh"
-#include "sim/cur_tick.hh"
-#include <cassert>
-#include "cpu/o3/dyn_inst.hh" 
-#include "cpu/thread_context.hh"
-#include "arch/generic/isa.hh"
 #include <unordered_map>
 #include <functional>
 #include <string>     
-#include <fstream>
+
+#include "sim/system.hh"
+#include "sim/cur_tick.hh"
+#include "cpu/o3/cpu.hh"
+#include "cpu/o3/dyn_inst.hh" 
+#include "cpu/thread_context.hh"
+#include "arch/generic/isa.hh"
+
 
 namespace gem5
 {
@@ -41,17 +41,25 @@ FaultInjector::FaultInjector(const FaultInjectorParams &params)
       o3cpu(dynamic_cast<o3::CPU *>(params.o3cpu)),
       tickEvent([this] { this->tick(); }, name())
 {
-     // Verifica che il puntatore alla CPU sia valido
+    // Verifica che il puntatore alla CPU sia valido
     if (!o3cpu) {
         throw std::runtime_error("FaultInjector: Invalid CPU pointer");
     }
-     // Apre il file di log per salvare i dettagli riguardo i fault iniettati
+
+    // Apre il file di log per salvare i dettagli riguardo i fault iniettati
     logFile.open("fault_injections.log", std::ios::out);
     if (!logFile.is_open()) {
         throw std::runtime_error("FaultInjector: Could not open log file for writing");
     }
-     // Pianifica un evento di tick
-    scheduleTickEvent(Cycles(1));
+
+    // Inizializza il generatore di numeri casuali
+    auto seed = rd(); // TODO - si potrebbe mettere seed tra i parametri per riproducibilità
+    rng.seed(seed);
+    inter_fault_cycles_dist = std::geometric_distribution<unsigned>(probability);
+
+    // Pianifica primo fault
+    unsigned next_fault_cycle_distance = inter_fault_cycles_dist(rng);
+    scheduleTickEvent(Cycles(next_fault_cycle_distance)); 
 }
 
 /**
@@ -243,8 +251,9 @@ void FaultInjector::tick()
         return;
     }
 
-    // Pianifica la chiamata alla funzione anche per il prossimo ciclo di clock
-    scheduleTickEvent(Cycles(1));
+    // Pianifica la chiamata alla funzione per il prossimo fault
+    unsigned next_fault_cycle_distance = inter_fault_cycles_dist(rng);
+    scheduleTickEvent(Cycles(next_fault_cycle_distance));
 
     // Verifica che ci siano istruzioni valide decodificate e che si è superato il valore minimo di clock per attivare il fault injector
     if (o3cpu->curCycle() < firstClock || o3cpu->instList.empty()) {
@@ -252,13 +261,7 @@ void FaultInjector::tick()
     }
 
     // Controlla le condizioni per l'iniezione di fault
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_real_distribution<> dis(0.0, 1.0);
-    double random_value = dis(gen);
-
-    if (random_value < probability // Se viene generato un valore minore della probabilità indicata
-        && checkInst() ) {  // Se l'istruzione o il PC corrente corrispondono a quelli indicati
+    if (checkInst()) {  // Se l'istruzione o il PC corrente corrispondono a quelli indicati
         // Abilita la fault injection in questo ciclo per tutti i thread
         for (ThreadID tid = 0; tid < o3cpu->numThreads; ++tid) {
             processFault(tid);

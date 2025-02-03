@@ -1,15 +1,17 @@
 #ifndef __FAULT_INJECTOR_HH__
 #define __FAULT_INJECTOR_HH__
 
-#include "sim/sim_object.hh"
-#include "params/FaultInjector.hh"
-#include "cpu/o3/cpu.hh"
 #include <iostream>
 #include <random>
 #include <bitset>
+#include <fstream>
+
+#include "params/FaultInjector.hh"
+
+#include "sim/sim_object.hh"
 #include "sim/cur_tick.hh"
 #include "sim/eventq.hh"
-#include <fstream>
+#include "cpu/o3/cpu.hh"
 
 namespace gem5
 {
@@ -116,6 +118,13 @@ namespace gem5
         */
         ~FaultInjector();
 
+        /**
+         * Random cose
+         */
+        std::random_device rd;
+        std::mt19937 rng;
+        std::geometric_distribution<unsigned> inter_fault_cycles_dist;
+
     public:
         /**
          * Funzione che inietta un fault nei registri di un thread specificato.
@@ -137,7 +146,7 @@ namespace gem5
         void processFault(ThreadID tid);
 
         /**
-         * Pianifica l'iniezione di un fault ogni ciclo di clock.
+         * Tick del SimObject: introduce fault e schedula prossimo fault.
          */
         void tick();
 
