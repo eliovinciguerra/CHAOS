@@ -90,7 +90,7 @@ Before the definition of *root*, add the following in order to test the tool usi
 
 ```python
 fault_injector = CHAOS(
-    o3cpu = system.cpu,
+    cpu = system.cpu,
     probability = probability
 )
 system.CHAOS = fault_injector
