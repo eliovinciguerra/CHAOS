@@ -1,7 +1,0 @@
-Import('*')
-
-SimObject('FaultInjector.py',
-          sim_objects=['FaultInjector'],
-          enums=[]
-)
-Source('fault_injector.cc')

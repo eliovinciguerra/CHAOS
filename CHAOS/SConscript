@@ -1,0 +1,7 @@
+Import('*')
+
+SimObject('CHAOS.py',
+          sim_objects=['CHAOS'],
+          enums=[]
+)
+Source('CHAOS.cc')

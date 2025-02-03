@@ -27,9 +27,9 @@ To use it, run:
 CHAOS can be configured to inject specific types of faults with clock cycle-level granularity.
 
 The following parameters are configurable:
-- *o3cpu*: Defines the CPU model used by gem5.
-- *probability*: A floating-point value between 0 and 1 that specifies the probability threshold for activating the fault injector in a given clock cycle.
-- *firstClock*: An integer value indicating the first clock cycle in which the fault injector can be triggered.
+- *cpu*: Defines the CPU model used by gem5.
+- *probability*: A floating-point value between 0 and 1 that specifies the probability threshold for activating CHAOS in a given clock cycle.
+- *firstClock*: An integer value indicating the first clock cycle in which CHAOS can be triggered.
 - *lastClock*: An integer value specifying the last permissible clock cycle for fault injection.
 - *faultType*: A string specifying the type of fault to be injected. Available options include:
     - 'bit_flip' – a single-bit inversion.
@@ -38,7 +38,7 @@ The following parameters are configurable:
     - 'random' – randomly selects one of the above fault types.
 - *faultMask*: A string representing a bitmask to be applied to the target register. If set to '0', a random bitmask is generated.
 - *numBitsToChange*: If *faultMask* is set to '0', this integer parameter determines the number of bits to be affected by the randomly generated bitmask.
-- *instTarget*: A string specifying the instruction types that the fault injector can target. Examples include:
+- *instTarget*: A string specifying the instruction types that CHAOS can target. Examples include:
     - 'nop' – no-operation instructions.
     - 'load' – memory load operations.
     - 'store' – memory store operations.
@@ -50,7 +50,7 @@ The following parameters are configurable:
     - 'integer' – integer registers.
     - 'floating_point' – floating-point registers.
     - 'both' – randomly selects between integer and floating-point registers.
-- *PCTarget*: A numerical value specifying the program counter (PC) address at which the fault injector should be activated.
+- *PCTarget*: A numerical value specifying the program counter (PC) address at which CHAOS should be activated.
 
 Notably, the *instTarget* parameter supports all instruction types defined in *gem5/src/cpu/static_inst.hh*, including but not limited to: 'atomic', 'store_conditional', 'inst_prefetch', 'data_prefetch', 'vector', 'control', 'call', 'direct_ctrl', 'indirect_ctrl', 'full_mem_barrier', 'read_barrier', 'write_barrier', 'serializing', 'serialize_before', 'squash_after', 'syscall', 'macroop', 'microop', 'htm_start', 'htm_stop', 'htm_cancel', and 'htm_cmd'.
 
@@ -89,11 +89,11 @@ As at the moment this tool works only with O3 CPUs.
 Before the definition of *root*, add the following in order to test the tool using the default configuration:
 
 ```python
-fault_injector = FaultInjector(
+fault_injector = CHAOS(
     o3cpu = system.cpu,
     probability = probability
 )
-system.fault_injector = fault_injector
+system.CHAOS = fault_injector
 ```
 
 Now you can run gem5 without any further modifications.
