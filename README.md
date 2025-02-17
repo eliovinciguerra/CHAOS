@@ -3,15 +3,22 @@
 
 CHAOS is a fault injector for gem5, and its distinctive feature lies in its modular and open-source nature.
 
-At the current stage of the project, all ISAs supported by gem5 are compatible. However, the only supported CPU model is the Out-of-Order (O3) core.
+CHAOS is organized into 3 different modules, which offer the ability to inject faults into:
+- CPU registers (CHAOSReg).
+- Cache memory (CHAOSTags).
+- Main memory (CHAOSMem).
+
+At the current stage of the project, all ISAs supported by gem5 are compatible. However, for CHAOSReg the only supported CPU model is the Out-of-Order (O3) core.
 
 It is also important to note that CHAOS has been implemented as a SimObject, which makes it highly customizable and easy to install, even when upgrading to a new version of gem5.
 ## Types of Faults
 
-CHAOS currently supports three distinct types of faults, enabling modifications to the contents of target registers:
+CHAOSReg currently supports three distinct types of faults, enabling modifications to the contents of target registers:
 1. Bit flip: This fault type induces a bit-flipping operation on the register contents, where one or more bits transition from 0 to 1 or vice versa. This alteration models transient faults in the system, which may arise due to physical phenomena such as radiation, electromagnetic interference, hardware malfunctions, or material defects in the circuitry.
 2. Stuck at zero: In this configuration, one or more bits within the register are permanently forced to 0. This simulates permanent faults in the system, akin to a node or signal line being shorted to ground.
 3. Stuck at one: Similar to the previous configuration, this fault type forces one or more bits in the register to remain at 1, simulating permanent errors in the system, such as a node being tied to the power supply.
+
+CHAOSTags and CHAOSMem only support bit flips.
 ## Installation
 
 Use the Makefile to clone the RISC-V toolchain (used for testing) and gem5, move the fault injector into the gem5 directory, and compile everything.
@@ -22,9 +29,9 @@ To use it, run:
   make
 ```
     
-## Usage
+## Usage of CHAOSReg
 
-CHAOS can be configured to inject specific types of faults with clock cycle-level granularity.
+CHAOSReg can be configured to inject specific types of faults with clock cycle-level granularity.
 
 The following parameters are configurable:
 - *cpu*: Defines the CPU model used by gem5.
@@ -71,7 +78,64 @@ After the simulation run, a log file named *fault_injections.log* will be genera
 - *Register*: the identifier of the target register.
 - *Mask*: the applied mask.
 - *FaultType*: the type of fault injected.
-## Examples
+
+## Usage of CHAOSTags
+
+CHAOSTags can be configured to inject specific bit flips with cycle-level precision.
+
+CHAOSTags models only the cache tag. The provided simobject sits between the cache and the default BaseTags model, injecting bit flips into packets arriving at the cache. To simplify installation, a complete set of Tags extending BaseTags has been provided, modified to integrate seamlessly with CHAOSTags.
+
+The following parameters are configurable:
+- *probability*: A floating-point value between 0 and 1 that specifies the probability threshold for activating CHAOS in a given clock cycle.
+- *firstClock*: An integer value indicating the first clock cycle in which CHAOS can be triggered.
+- *lastClock*: An integer value specifying the last permissible clock cycle for fault injection.
+- *faultMask*: A byte representing a bitmask to be applied to the target (from '0' to '255'). If set to '0', a random bitmask is generated.
+- *numBitsToChangePerByte*: If *faultMask* is set to '0', this integer parameter determines the number of bits to be affected by the randomly generated bitmask.
+- *numBytesToChange*: Number of bits to change in the target cache packet during fault injection. (TODO)
+- *tickToClockRatio*: The ratio between gem5 ticks and clock cycle.
+
+Each parameter is assigned a default value as follows:
+- *probability*: 0.0.
+- *firstClock*: 0.
+- *lastClock*: -1.
+- *faultMask*: '0'.
+- *numBitsToChangePerByte*: 1.
+- *numBytesToChange*: 1.
+- *tickToClockRatio*: 1000.
+
+After the simulation run, a log file named *fault_injections.log* will be generated. Each line in the file will record an injected fault, containing the following details:
+- *Tick*: the tick in which the fault is injected.
+- *Packet Byte*: the packet byte in which the fault is injected.
+- *Mask*: the applied mask.
+
+## Usage of CHAOSMem
+
+CHAOSMem can be configured to inject specific bit flip with clock cycle-level granularity.
+
+The following parameters are configurable:
+- *mem*: Define the target memory.
+- *probability*: A floating-point value between 0 and 1 that specifies the probability threshold for activating CHAOS in a given clock cycle.
+- *firstClock*: An integer value indicating the first clock cycle in which CHAOS can be triggered.
+- *lastClock*: An integer value specifying the last permissible clock cycle for fault injection.
+- *faultMask*: A byte representing a bitmask to be applied to the target (from '0' to '255'). If set to '0', a random bitmask is generated.
+- *bitsToChange*: If *faultMask* is set to '0', this integer parameter determines the number of bits to be affected by the randomly generated bitmask.
+- *tickToClockRatio*: The ratio between gem5 ticks and clock cycle.
+
+Each parameter is assigned a default value as follows:
+- *probability*: 0.0.
+- *firstClock*: 0.
+- *lastClock*: -1.
+- *faultMask*: '0'.
+- *bitsToChange*: 1.
+- *tickToClockRatio*: 1000.
+
+After the simulation run, a log file named *fault_injections.log* will be generated. Each line in the file will record an injected fault, containing the following details:
+- *Tick*: the tick in which the fault is injected.
+- *target addr*: the memory target address in which the fault is injected.
+- *Mask*: the applied mask.
+
+
+## Examples of CHAOSReg
 
 For testing purposes, modify the example file provided by gem5: */path/to/gem5/configs/learning_gem5/part1/simple-riscv.py.*
 
@@ -89,14 +153,49 @@ As at the moment this tool works only with O3 CPUs.
 Before the definition of *root*, add the following in order to test the tool using the default configuration:
 
 ```python
-fault_injector = CHAOS(
+fault_injector = CHAOSReg(
     cpu = system.cpu,
     probability = probability
 )
-system.CHAOS = fault_injector
+system.CHAOSReg = fault_injector
 ```
 
 Now you can run gem5 without any further modifications.
+
+In the */CHAOS/examples* directory, you can find *simple-riscv.py*, which has already been modified.
+
+## Examples of CHAOSTags
+
+For testing purposes, modify the example file provided by gem5: */path/to/gem5/configs/learning_gem5/part1/two_level.py*
+
+Before the definition of *root*, add the following in order to test the tool using the default configuration:
+
+```python
+system.l2cache.tags.probability = probability
+```
+
+Now you can run gem5 without any further modifications.
+
+In the */CHAOS/examples* directory, you can find *two_level.py*, which has already been modified.
+
+## Examples of CHAOSMem
+
+For testing purposes, modify the example file provided by gem5: */path/to/gem5/configs/learning_gem5/part1/simple-riscv.py.*
+
+Before the definition of *root*, add the following in order to test the tool using the default configuration:
+
+```python
+fault_injector = CHAOSReg(
+    mem=system.mem_ctrl.dram,
+    probability = probability
+)
+system.CHAOSMem = fault_injector
+```
+
+Now you can run gem5 without any further modifications.
+
+In the */CHAOS/examples* directory, you can find *simple-riscv.py*, which has already been modified.
+
 ## Authors
 
 - [@eliovinciguerra](https://www.github.com/eliovinciguerra)

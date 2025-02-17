@@ -1,5 +1,5 @@
-#include "CHAOS/CHAOS.hh"
-#include "params/CHAOS.hh"
+#include "CHAOSReg/CHAOSReg.hh"
+#include "params/CHAOSReg.hh"
 
 #include <cassert>
 
@@ -23,11 +23,11 @@
 namespace gem5
 {
 /**
- * Constructor of the CHAOS class.
+ * Constructor of the CHAOSReg class.
  * Initializes the parameters passed from the configuration file and sets up the environment for fault injection.
  * The CPU validity is checked, and a log file is opened to track the injected faults.
  */
-CHAOS::CHAOS(const CHAOSParams &params)
+CHAOSReg::CHAOSReg(const CHAOSRegParams &params)
     : SimObject(params),
       probability(params.probability),
       numBitsToChange(params.numBitsToChange),
@@ -43,13 +43,13 @@ CHAOS::CHAOS(const CHAOSParams &params)
 {
     // Verifies that the pointer to the CPU is valid
     if (!cpu) {
-        throw std::runtime_error("CHAOS: Invalid CPU pointer");
+        throw std::runtime_error("CHAOSReg: Invalid CPU pointer");
     }
 
     // Opens the log file to save details about the injected faults
     logFile.open("fault_injections.log", std::ios::out);
     if (!logFile.is_open()) {
-        throw std::runtime_error("CHAOS: Could not open log file for writing");
+        throw std::runtime_error("CHAOSReg: Could not open log file for writing");
     }
 
     // Initializes the random number generator
@@ -63,23 +63,23 @@ CHAOS::CHAOS(const CHAOSParams &params)
 }
 
 /**
- * Static method to create a CHAOS with the specified parameters.
+ * Static method to create a CHAOSReg with the specified parameters.
  */
-CHAOS *CHAOS::create(const CHAOSParams &params) 
+CHAOSReg *CHAOSReg::create(const CHAOSRegParams &params) 
 {
-    return new CHAOS(params);
+    return new CHAOSReg(params);
 }
 
-gem5::CHAOS *
-gem5::CHAOSParams::create() const
+gem5::CHAOSReg *
+gem5::CHAOSRegParams::create() const
 {
-    return new gem5::CHAOS(*this);
+    return new gem5::CHAOSReg(*this);
 }
 
 /**
  * Destructor method: closes the log file.
  */
-CHAOS::~CHAOS()
+CHAOSReg::~CHAOSReg()
 {
     if (logFile.is_open()) {
         logFile.close();
@@ -89,7 +89,7 @@ CHAOS::~CHAOS()
 /**
  * Schedules the tick event starting from a certain delay in clock cycles.
  */
-void CHAOS::scheduleTickEvent(Cycles delay)
+void CHAOSReg::scheduleTickEvent(Cycles delay)
 {
     if (!tickEvent.scheduled())
         schedule(tickEvent, cpu->clockEdge(delay));
@@ -98,7 +98,7 @@ void CHAOS::scheduleTickEvent(Cycles delay)
 /**
  * Cancels the tick event if it has been scheduled.
  */
-void CHAOS::unscheduleTickEvent()
+void CHAOSReg::unscheduleTickEvent()
 {
     if (tickEvent.scheduled())
         tickEvent.squash();
@@ -111,7 +111,7 @@ void CHAOS::unscheduleTickEvent()
  * @param numBits Number of bits to modify.
  * @return The generated mask.
  */
-int CHAOS::generateRandomMask(std::mt19937 &gen, int numBits)
+int CHAOSReg::generateRandomMask(std::mt19937 &gen, int numBits)
 {
     int mask = 0;
     std::uniform_int_distribution<int> bitDist(0, 31);
@@ -129,7 +129,7 @@ int CHAOS::generateRandomMask(std::mt19937 &gen, int numBits)
  * 
  * @param tid Target thread ID.
  */
-void CHAOS::processFault(ThreadID tid)
+void CHAOSReg::processFault(ThreadID tid)
 {
     // Retrieves the thread context with the specified tid code
     auto *threadContext = cpu->tcBase(tid);
@@ -222,7 +222,7 @@ void CHAOS::processFault(ThreadID tid)
 /**
  * At each tick, checks if the conditions specified for enabling fault injection are met.
  */
-void CHAOS::tick()
+void CHAOSReg::tick()
 {
     // If the injection probability is zero, stops the fault injector
     if (!probability) {
@@ -276,7 +276,7 @@ void CHAOS::tick()
  * Method to check the current instruction and the current PC
  * Returns true if the current instruction or the current PC matches the target, false otherwise
  */
-bool CHAOS::checkInst()
+bool CHAOSReg::checkInst()
 {
     // Retrieves the last decoded instruction
     auto inst = cpu->instList.back();

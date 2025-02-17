@@ -1,13 +1,13 @@
 from m5.params import *
 from m5.SimObject import SimObject
 
-class CHAOS(SimObject):
-    type = 'CHAOS'
+class CHAOSReg(SimObject):
+    type = 'CHAOSReg'
 
-    cxx_class = 'gem5::CHAOS'
-    cxx_header = "CHAOS/CHAOS.hh"
+    cxx_class = 'gem5::CHAOSReg'
+    cxx_header = "CHAOSReg/CHAOSReg.hh"
 
-    # CHAOS parameters
+    # CHAOSReg parameters
     probability = Param.Float(
         0.0, 
         "Probability (between 0 and 1) of processing fault injection"

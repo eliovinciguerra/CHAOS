@@ -1,12 +1,12 @@
-#ifndef __CHAOS_HH__
-#define __CHAOS_HH__
+#ifndef __CHAOSReg_HH__
+#define __CHAOSReg_HH__
 
 #include <iostream>
 #include <random>
 #include <bitset>
 #include <fstream>
 
-#include "params/CHAOS.hh"
+#include "params/CHAOSReg.hh"
 
 #include "sim/sim_object.hh"
 #include "sim/cur_tick.hh"
@@ -16,14 +16,14 @@
 namespace gem5
 {
     /**
-    * The CHAOS class is responsible for injecting faults into the registers 
+    * The CHAOSReg class is responsible for injecting faults into the registers 
     * of the simulated CPU. Faults are introduced with a configurable probability, 
     * enabling the evaluation of CPU resilience under hardware error conditions. 
     * Fault injection is performed at the thread level, with each injection occurring 
     * on a per-clock-cycle basis.
     */
 
-    class CHAOS : public SimObject
+    class CHAOSReg : public SimObject
     {
      private:
         o3::CPU *cpu;               // Pointer to the O3 (Out-of-Order) CPU
@@ -118,7 +118,7 @@ namespace gem5
         /*
         * Destructor that closes the log file.
         */
-        ~CHAOS();
+        ~CHAOSReg();
 
         /*
          * About mt19937 random generator
@@ -134,10 +134,10 @@ namespace gem5
         * 
         * @param tid Thread identifier to inject the fault into.
         */
-        CHAOS(const CHAOSParams &p);
+        CHAOSReg(const CHAOSRegParams &p);
 
-        // Static function to create a CHAOS object
-        static CHAOS *create(const CHAOSParams &params);
+        // Static function to create a CHAOSReg object
+        static CHAOSReg *create(const CHAOSRegParams &params);
 
         /**
         * Function that injects a fault into the registers of a specified thread.
@@ -168,4 +168,4 @@ namespace gem5
 
 } // namespace gem5
 
-#endif // __CHAOS_HH__
+#endif // __CHAOSReg_HH__

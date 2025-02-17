@@ -1,15 +1,28 @@
-CHAOS_DIR = CHAOS
+CHAOS_DIR = CHAOSReg
+CHAOS_CACHE_DIR = CHAOSTags
+CHAOS_MEM_DIR = CHAOSMem
 
 GEM5_REPO = https://github.com/gem5/gem5
 GEM5_DIR = gem5
+GEM5_REG_DIR = $(GEM5_DIR)/src/
+GEM5_CACHE_DIR = $(GEM5_DIR)/src/mem/cache/
+GEM5_MEM_DIR = $(GEM5_DIR)/src/mem/
 CONFIG = RISCV/gem5.opt
-BUILD_DIR = $(GEM5_DIR)/build/$(CONFIG)
+BUILD_DIR = build/$(CONFIG)
 
 RISC_V_GNU_TOOLCHAIN_REPO = https://github.com/riscv-collab/riscv-gnu-toolchain.git
 RISC_V_GNU_TOOLCHAIN_DIR = riscv-gnu-toolchain
 RISC_V_GNU_TOOLCHAIN_CONFIG_DIR = /opt/riscv
 
-all: install_requirements clone_gem5 move_chaos install_gem5_requirements build_gem5 clone_riscv_toolchain build_riscv_toolchain copy_riscv_lib
+all: install_requirements clone_gem5 move_chaos_reg move_chaos_tags move_chaos_mem install_gem5_requirements build_gem5 #clone_riscv_toolchain build_riscv_toolchain copy_riscv_lib
+
+chaosreg: clone_gem5 move_chaos_reg install_gem5_requirements build_gem5
+
+chaostags: clone_gem5 move_chaos_tags install_gem5_requirements build_gem5
+
+chaosmem: clone_gem5 move_chaos_mem install_gem5_requirements build_gem5
+
+toolchain: clone_riscv_toolchain build_riscv_toolchain copy_riscv_lib
 
 install_requirements:
 	@apt-get update
@@ -18,16 +31,32 @@ install_requirements:
 
 clone_gem5:
 	@if [ ! -d "$(GEM5_DIR)" ]; then \
-		git clone $(GEM5_REPO) --recursive; \
+		git clone $(GEM5_REPO) --recursive ./$(GEM5_DIR); \
 	else \
 		echo "gem5 already found."; \
 	fi
 
-move_chaos:
+move_chaos_reg:
 	@if [ -d "$(CHAOS_DIR)" ]; then \
-		cp -r $(CHAOS_DIR) $(GEM5_DIR)/src/; \
+		cp -r $(CHAOS_DIR) $(GEM5_REG_DIR); \
 	else \
-		echo "CHAOS folder not found, does it exists?"; \
+		echo "CHAOSReg folder not found, does it exist?"; \
+		exit 1; \
+	fi
+
+move_chaos_tags:
+	@if [ -d "$(CHAOS_CACHE_DIR)" ]; then \
+		cp -rf $(CHAOS_CACHE_DIR)/* $(GEM5_CACHE_DIR); \
+	else \
+		echo "CHAOSTags folder not found, does it exist?"; \
+		exit 1; \
+	fi
+
+move_chaos_mem:
+	@if [ -d "$(CHAOS_MEM_DIR)" ]; then \
+		cp -rf $(CHAOS_MEM_DIR) $(GEM5_MEM_DIR); \
+	else \
+		echo "CHAOSMem folder not found, does it exist?"; \
 		exit 1; \
 	fi
 
@@ -42,7 +71,7 @@ build_gem5:
 
 clone_riscv_toolchain:
 	@if [ ! -d "$(RISC_V_GNU_TOOLCHAIN_DIR)" ]; then \
-		git clone --recursive $(RISC_V_GNU_TOOLCHAIN_REPO); \
+		git clone --recursive $(RISC_V_GNU_TOOLCHAIN_REPO) ./$(RISC_V_GNU_TOOLCHAIN_DIR); \
 	else \
 		echo "riscv-gnu-toolchain already found."; \
 	fi
@@ -56,4 +85,4 @@ build_riscv_toolchain:
 copy_riscv_lib:
 	@cp -r $(RISC_V_GNU_TOOLCHAIN_CONFIG_DIR)/sysroot/lib/* /lib/
 
-.PHONY: all install_requirements clone_gem5 move_chaos install_gem5_requirements build_gem5 clone_riscv_toolchain build_riscv_toolchain copy_riscv_lib
+.PHONY: all install_requirements clone_gem5 move_chaos install_gem5_requirements build_gem5 #clone_riscv_toolchain build_riscv_toolchain copy_riscv_lib

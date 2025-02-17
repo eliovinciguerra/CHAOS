@@ -1,0 +1,4 @@
+Import('*')
+
+SimObject('CHAOSReg.py', sim_objects=['CHAOSReg'], enums=[])
+Source('CHAOSReg.cc')
