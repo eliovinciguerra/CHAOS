@@ -128,6 +128,8 @@ class CHAOSTags(BaseTags):
 
     faultMask = Param.String("0", "Bit mask to be applied to the target cache packet value")
 
+    faultType = Param.String("random", "Type of alteration to be performed")
+
 
 class BaseSetAssoc(CHAOSTags):
     type = "BaseSetAssoc"

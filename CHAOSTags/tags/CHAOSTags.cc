@@ -13,7 +13,7 @@ namespace gem5
 
     CHAOSTags::CHAOSTags(const Params &p)
     : BaseTags(p), probability(p.probability), numBytesToChange(p.numBytesToChange), 
-    numBitsToChangePerByte(p.numBitsToChangePerByte), firstClock(p.firstClock), 
+    numBitsToChangePerByte(p.numBitsToChangePerByte), firstClock(p.firstClock), faultType(p.faultType),
     lastClock(p.lastClock), tickToClockRatio(p.tickToClockRatio), faultMask(static_cast<unsigned char>(std::stoi(p.faultMask, nullptr, 2)))
 {
     // Opens the log file to save details about the injected faults
@@ -81,12 +81,31 @@ CHAOSTags::injectFault(PacketPtr pkt) {
 
             std::uniform_int_distribution<int> dist(0, pkt->getSize() - 1);
             int byte = dist(rng);
-            x[byte] ^= mask;
+
+             // Determines the type of fault to apply to the obtained value
+            std::string chosenFaultType = faultType;
+            if (faultType == "random") { // Random selection of the fault type
+                static std::mt19937 gen(std::random_device{}());
+                static std::uniform_int_distribution<int> dis(0, 2);
+
+                // Randomly maps the number to a fault type
+                const char* faultTypes[] = {"bit_flip", "stuck_at_zero", "stuck_at_one"};
+                chosenFaultType = faultTypes[dis(gen)];
+            }
+            // Applies the fault to the register value
+            if (chosenFaultType == "stuck_at_zero") {
+                x[byte] &= ~mask;
+            } else if (chosenFaultType == "stuck_at_one") {
+                x[byte] |= mask;
+            } else if (chosenFaultType == "bit_flip") {
+                x[byte] ^= mask;
+            }
 
             // Logs the operations just performed in the log file
             logFile << "Tick: " << curTick() 
             << ", Packet Byte: " << byte
             << ", Mask: " << std::bitset<8>(mask)
+            << ", Fault Type: " << chosenFaultType
             << std::dec << std::endl;
 
             logFile.flush();

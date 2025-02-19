@@ -21,7 +21,7 @@ namespace gem5 {
     CHAOSMem::CHAOSMem(const CHAOSMemParams& params)
     : SimObject(params), probability(params.probability), bitsToChange(params.bitsToChange), 
     firstClock(params.firstClock), lastClock(params.lastClock), tickToClockRatio(params.tickToClockRatio), 
-    faultMask(static_cast<unsigned char>(std::stoi(params.faultMask, nullptr, 2))),
+    faultType(params.faultType), faultMask(static_cast<unsigned char>(std::stoi(params.faultMask, nullptr, 2))),
     attackEvent([this]{ this->attackMemory(); }, name()) 
     {
         if (! (probability == 0.0)){
@@ -30,7 +30,7 @@ namespace gem5 {
             }
 
             // Opens the log file to save details about the injected faults
-            logFile.open("cache_injections.log", std::ios::out);
+            logFile.open("main_mem_injections.log", std::ios::out);
             if (!logFile.is_open()) {
                 throw std::runtime_error("CHAOSMem: Could not open log file for writing");
             }
@@ -99,7 +99,25 @@ namespace gem5 {
         memory->access(read_pkt);
 
         unsigned char mask = (faultMask != 0) ? faultMask : generateRandomMask(rng, bitsToChange);
-        data ^= mask;
+
+        // Determines the type of fault to apply to the obtained value
+        std::string chosenFaultType = faultType;
+        if (faultType == "random") { // Random selection of the fault type
+            static std::mt19937 gen(std::random_device{}());
+            static std::uniform_int_distribution<int> dis(0, 2);
+
+            // Randomly maps the number to a fault type
+            const char* faultTypes[] = {"bit_flip", "stuck_at_zero", "stuck_at_one"};
+            chosenFaultType = faultTypes[dis(gen)];
+        }
+        // Applies the fault to the register value
+        if (chosenFaultType == "stuck_at_zero") {
+            data &= ~mask;
+        } else if (chosenFaultType == "stuck_at_one") {
+            data |= mask;
+        } else if (chosenFaultType == "bit_flip") {
+            data ^= mask;
+        }
 
         PacketPtr write_pkt = new Packet(req, MemCmd::WriteReq);
         write_pkt->dataStatic(&data);
@@ -113,6 +131,7 @@ namespace gem5 {
         logFile << "Tick: " << curTick() 
         << ", target addr: " << target_addr
         << ", Mask: " << std::bitset<8>(mask)
+        << ", Fault Type: " << chosenFaultType
         << std::dec << std::endl;
 
         logFile.flush();

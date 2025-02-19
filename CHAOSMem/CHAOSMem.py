@@ -13,3 +13,4 @@ class CHAOSMem(SimObject):
     lastClock = Param.Int(-1, "Clock cycle after which the cache fault injector is disabled (default last clock cycle)")
     tickToClockRatio = Param.Int(1000, "Ratio between tick and clock cycle (tick/cycle)")
     faultMask = Param.String("0", "Bit mask to be applied to the target cache packet value")
+    faultType = Param.String("random", "Type of alteration to be performed")

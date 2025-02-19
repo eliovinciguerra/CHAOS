@@ -48,6 +48,12 @@ namespace gem5 {
                                   Allowed values -> A string containing bits ranging from "0" to "11111111111111111111111111111111"  
                                   Default value -> "0" (if set to "0", a random bitmask of numBitsToChange bits is generated) */
 
+      std::string faultType;      /* Type of modification to apply to the target register's bits  
+                                  Allowed values -> "bit_flip",  
+                                                      "stuck_at_zero",  
+                                                      "stuck_at_one",  
+                                                      "random" (randomly selects one of the above methods)  
+                                  Default value -> "random" */
       int tickToClockRatio;
 
       EventFunctionWrapper attackEvent;

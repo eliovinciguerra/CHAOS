@@ -40,7 +40,7 @@ system.clk_domain.voltage_domain = VoltageDomain()
 
 system.mem_mode = "timing"
 system.mem_ranges = [AddrRange("512MiB")]
-system.cpu = RiscvTimingSimpleCPU()
+system.cpu = RiscvO3CPU()
 
 system.membus = SystemXBar()
 
@@ -71,7 +71,7 @@ system.cpu.workload = process
 system.cpu.createThreads()
 
 # Creazione del Fault Injector
-system.CHAOSMem = CHAOSReg(probability=0.00000005, cpu=system.cpu)
+system.CHAOSReg = CHAOSReg(probability=0.00000005, cpu=system.cpu)
 system.CHAOSMem = CHAOSMem(probability=0.00000005, mem=system.mem_ctrl.dram)
 
 root = Root(full_system=False, system=system)

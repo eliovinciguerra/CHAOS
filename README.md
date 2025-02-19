@@ -13,12 +13,11 @@ At the current stage of the project, all ISAs supported by gem5 are compatible. 
 It is also important to note that CHAOS has been implemented as a SimObject, which makes it highly customizable and easy to install, even when upgrading to a new version of gem5.
 ## Types of Faults
 
-CHAOSReg currently supports three distinct types of faults, enabling modifications to the contents of target registers:
+CHAOSReg, CHAOSTags and CHAOSMem currently supports three distinct types of faults, enabling modifications to the contents of target registers:
 1. Bit flip: This fault type induces a bit-flipping operation on the register contents, where one or more bits transition from 0 to 1 or vice versa. This alteration models transient faults in the system, which may arise due to physical phenomena such as radiation, electromagnetic interference, hardware malfunctions, or material defects in the circuitry.
 2. Stuck at zero: In this configuration, one or more bits within the register are permanently forced to 0. This simulates permanent faults in the system, akin to a node or signal line being shorted to ground.
 3. Stuck at one: Similar to the previous configuration, this fault type forces one or more bits in the register to remain at 1, simulating permanent errors in the system, such as a node being tied to the power supply.
 
-CHAOSTags and CHAOSMem only support bit flips.
 ## Installation
 
 Use the Makefile to clone the RISC-V toolchain (used for testing) and gem5, move the fault injector into the gem5 directory, and compile everything.
@@ -89,6 +88,11 @@ The following parameters are configurable:
 - *probability*: A floating-point value between 0 and 1 that specifies the probability threshold for activating CHAOS in a given clock cycle.
 - *firstClock*: An integer value indicating the first clock cycle in which CHAOS can be triggered.
 - *lastClock*: An integer value specifying the last permissible clock cycle for fault injection.
+- *faultType*: A string specifying the type of fault to be injected. Available options include:
+    - 'bit_flip' – a single-bit inversion.
+    - 'stuck_at_zero' – forcing a bit to remain at logic level 0.
+    - 'stuck_at_one' – forcing a bit to remain at logic level 1.
+    - 'random' – randomly selects one of the above fault types.
 - *faultMask*: A byte representing a bitmask to be applied to the target (from '0' to '255'). If set to '0', a random bitmask is generated.
 - *numBitsToChangePerByte*: If *faultMask* is set to '0', this integer parameter determines the number of bits to be affected by the randomly generated bitmask.
 - *numBytesToChange*: Number of bits to change in the target cache packet during fault injection. (TODO)
@@ -98,12 +102,13 @@ Each parameter is assigned a default value as follows:
 - *probability*: 0.0.
 - *firstClock*: 0.
 - *lastClock*: -1.
+- *faultType*: 'random'.
 - *faultMask*: '0'.
 - *numBitsToChangePerByte*: 1.
 - *numBytesToChange*: 1.
 - *tickToClockRatio*: 1000.
 
-After the simulation run, a log file named *fault_injections.log* will be generated. Each line in the file will record an injected fault, containing the following details:
+After the simulation run, a log file named *cache_injections.log* will be generated. Each line in the file will record an injected fault, containing the following details:
 - *Tick*: the tick in which the fault is injected.
 - *Packet Byte*: the packet byte in which the fault is injected.
 - *Mask*: the applied mask.
@@ -117,6 +122,11 @@ The following parameters are configurable:
 - *probability*: A floating-point value between 0 and 1 that specifies the probability threshold for activating CHAOS in a given clock cycle.
 - *firstClock*: An integer value indicating the first clock cycle in which CHAOS can be triggered.
 - *lastClock*: An integer value specifying the last permissible clock cycle for fault injection.
+- *faultType*: A string specifying the type of fault to be injected. Available options include:
+    - 'bit_flip' – a single-bit inversion.
+    - 'stuck_at_zero' – forcing a bit to remain at logic level 0.
+    - 'stuck_at_one' – forcing a bit to remain at logic level 1.
+    - 'random' – randomly selects one of the above fault types.
 - *faultMask*: A byte representing a bitmask to be applied to the target (from '0' to '255'). If set to '0', a random bitmask is generated.
 - *bitsToChange*: If *faultMask* is set to '0', this integer parameter determines the number of bits to be affected by the randomly generated bitmask.
 - *tickToClockRatio*: The ratio between gem5 ticks and clock cycle.
@@ -125,11 +135,12 @@ Each parameter is assigned a default value as follows:
 - *probability*: 0.0.
 - *firstClock*: 0.
 - *lastClock*: -1.
+- *faultType*: 'random'.
 - *faultMask*: '0'.
 - *bitsToChange*: 1.
 - *tickToClockRatio*: 1000.
 
-After the simulation run, a log file named *fault_injections.log* will be generated. Each line in the file will record an injected fault, containing the following details:
+After the simulation run, a log file named *main_mem_injections.log* will be generated. Each line in the file will record an injected fault, containing the following details:
 - *Tick*: the tick in which the fault is injected.
 - *target addr*: the memory target address in which the fault is injected.
 - *Mask*: the applied mask.
