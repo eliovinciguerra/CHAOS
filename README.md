@@ -22,11 +22,19 @@ CHAOSReg, CHAOSTags and CHAOSMem currently supports three distinct types of faul
 
 Use the Makefile to clone the RISC-V toolchain (used for testing) and gem5, move the fault injector into the gem5 directory, and compile everything.
 
-To use it, run:
+To clone gem5 and compile it with CHAOS, run:
 
 ```bash
-  make
+  make all
 ```
+
+To clone RISC-V toolchain (used later for the examples) and compile it, run:
+
+```bash
+  make toolchain
+```
+
+
     
 ## Usage of CHAOSReg
 
@@ -196,7 +204,7 @@ For testing purposes, modify the example file provided by gem5: */path/to/gem5/c
 Before the definition of *root*, add the following in order to test the tool using the default configuration:
 
 ```python
-fault_injector = CHAOSReg(
+fault_injector = CHAOSMem(
     mem=system.mem_ctrl.dram,
     probability = probability
 )
