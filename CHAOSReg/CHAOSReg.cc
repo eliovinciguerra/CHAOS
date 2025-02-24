@@ -248,7 +248,7 @@ void CHAOSReg::tick()
     bool cpuDrained = (cpu->drainState() == DrainState::Drained);
 
     // If the CPU and thread have finished, or if the clock cycle limit has been exceeded, stops the fault injector
-    if (allThreadsHalted || cpuDrained || (lastClock == -1 && cpu->curCycle() > lastClock)) {
+    if (allThreadsHalted || cpuDrained || (lastClock != -1 && cpu->curCycle() > lastClock)) {
         unscheduleTickEvent();
         return;
     }
