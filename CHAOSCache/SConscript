@@ -1,0 +1,4 @@
+Import('*')
+
+SimObject('CHAOSCache.py', sim_objects=['CHAOSCache'], enums=[])
+Source('CHAOSCache.cc')

@@ -33,6 +33,7 @@ line options from each individual class.
 
 import m5
 from m5.objects import Cache
+from m5.objects import CHAOSCache
 
 # Add the common scripts to our path
 m5.util.addToPath("../../")
@@ -43,7 +44,7 @@ from common import SimpleOpts
 # For all options see src/mem/cache/BaseCache.py
 
 
-class L1Cache(Cache):
+class L1Cache(CHAOSCache):
     """Simple L1 Cache with default values"""
 
     assoc = 2

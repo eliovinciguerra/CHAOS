@@ -1,5 +1,5 @@
 CHAOS_DIR = CHAOSReg
-CHAOS_CACHE_DIR = CHAOSTags
+CHAOS_CACHE_DIR = CHAOSCache
 CHAOS_MEM_DIR = CHAOSMem
 
 GEM5_REPO = https://github.com/gem5/gem5
@@ -46,7 +46,7 @@ move_chaos_reg:
 
 move_chaos_tags:
 	@if [ -d "$(CHAOS_CACHE_DIR)" ]; then \
-		cp -rf $(CHAOS_CACHE_DIR)/* $(GEM5_CACHE_DIR); \
+		cp -rf $(CHAOS_CACHE_DIR) $(GEM5_CACHE_DIR); \
 	else \
 		echo "CHAOSTags folder not found, does it exist?"; \
 		exit 1; \

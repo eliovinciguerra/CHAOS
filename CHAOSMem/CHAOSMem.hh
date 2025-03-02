@@ -1,13 +1,9 @@
 #ifndef __MEM_CHAOSMem_HH__
 #define __MEM_CHAOSMem_HH__
 
-#include <iostream>
 #include <random>
 #include <bitset>
-#include <fstream>
 #include <string>
-#include <random>
-#include <cassert>
 #include <cstdint>
 #include <functional>
 
@@ -17,9 +13,6 @@
 #include "base/types.hh"
 #include "params/CHAOSMem.hh"
 #include "mem/packet.hh"
-#include "base/callback.hh"
-#include "base/logging.hh"
-#include "base/statistics.hh"
 
 namespace gem5 {
 
@@ -59,7 +52,7 @@ namespace gem5 {
       EventFunctionWrapper attackEvent;
   
     public:
-      CHAOSMem(const CHAOSMemParams& params);
+      CHAOSMem(const CHAOSMemParams& p);
       ~CHAOSMem();
       void attackMemory();
       void scheduleAttack(Tick time);

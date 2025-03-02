@@ -59,8 +59,7 @@ system.system_port = system.membus.cpu_side_ports
 thispath = os.path.dirname(os.path.realpath(__file__))
 binary = os.path.join(
     thispath,
-    "../../../",
-    "tests/test-progs/hello/bin/riscv/linux/hello",
+    "./test_program/nn",
 )
 
 system.workload = SEWorkload.init_compatible(binary)
@@ -71,7 +70,7 @@ system.cpu.workload = process
 system.cpu.createThreads()
 
 # Creazione del Fault Injector
-system.CHAOSReg = CHAOSReg(probability=0.00000005, cpu=system.cpu)
+system.CHAOSReg = CHAOSReg(probability=0.00005, cpu=system.cpu)
 system.CHAOSMem = CHAOSMem(probability=0.00000005, mem=system.mem_ctrl.dram)
 
 root = Root(full_system=False, system=system)

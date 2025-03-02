@@ -41,7 +41,10 @@ IMPORTANT: If you modify this file, it's likely that the Learning gem5 book
 # from gem5.configs.common import SimpleOpts
 import sys
 import os
-sys.path.append(os.path.abspath("../gem5/configs"))
+
+thispath = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.abspath(thispath+"/../gem5/configs"))
+print(os.path.abspath(thispath+"/../gem5/configs"))
 from common import SimpleOpts
 
 # import the m5 (gem5) library created when gem5 is built
@@ -58,11 +61,9 @@ from caches import *
 
 # Default to running 'hello', use the compiled ISA to find the binary
 # grab the specific path to the binary
-thispath = os.path.dirname(os.path.realpath(__file__))
 default_binary = os.path.join(
     thispath,
-    "../../../",
-    "tests/test-progs/hello/bin/riscv/linux/hello",
+    "./test_program/nn",
 )
 
 # Binary to execute
@@ -76,11 +77,7 @@ system = System()
 
 # Set the clock frequency of the system (and all of its children)
 system.clk_domain = SrcClockDomain()
-
-clock_freq = "1GHz"
-system.clk_domain.clock = clock_freq
-clock_freq_hz = int(float("1GHz"[:-3]) * {'GHz': 1e9, 'MHz': 1e6, 'kHz': 1e3}.get("1GHz"[-3:], 1))
-
+system.clk_domain.clock = "1GHz"
 system.clk_domain.voltage_domain = VoltageDomain()
 
 # Set up the system
@@ -98,6 +95,9 @@ system.cpu.dcache = L1DCache(args)
 system.cpu.icache.connectCPU(system.cpu)
 system.cpu.dcache.connectCPU(system.cpu)
 
+# Fault injection probabilities
+system.cpu.dcache.probability = 0.1
+
 # Create a memory bus, a coherent crossbar, in this case
 system.l2bus = L2XBar()
 
@@ -105,14 +105,9 @@ system.l2bus = L2XBar()
 system.cpu.icache.connectBus(system.l2bus)
 system.cpu.dcache.connectBus(system.l2bus)
 
-
 # Create an L2 cache and connect it to the l2bus
 system.l2cache = L2Cache(args)
 system.l2cache.connectCPUSideBus(system.l2bus)
-
-# Fault injection probabilities
-system.l2cache.tags.probability = 0.0000001
-system.l2cache.tags.numBitsToChangePerByte = 1
 
 # Create a memory bus
 system.membus = SystemXBar()
