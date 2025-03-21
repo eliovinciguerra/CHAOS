@@ -136,7 +136,7 @@ namespace gem5
 
             o3::CPU * cpuO3 = dynamic_cast<o3::CPU *>(cpu);
             if (cpuO3){
-                cpuO3->setArchReg(regId, regVal, tid);
+                cpuO3->setArchReg(regId, regVal, threadContext->threadId());
             }else{
                 threadContext->setReg(regId, regVal);
             }
