@@ -134,7 +134,12 @@ namespace gem5
                 regVal ^= mask;
             }
 
-            threadContext->setReg(regId, regVal);
+            o3::CPU * cpuO3 = dynamic_cast<o3::CPU *>(cpu);
+            if (cpuO3){
+                cpuO3->setArchReg(regId, regVal, tid);
+            }else{
+                threadContext->setReg(regId, regVal);
+            }
 
             logFile << "Cycle: " << cpu->curCycle()
                     << ", CPU: " << cpu->name()
