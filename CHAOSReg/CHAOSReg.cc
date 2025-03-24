@@ -8,6 +8,7 @@
 #include <bitset>
 
 #include "cpu/base.hh"
+#include "cpu/o3/cpu.hh"
 #include "cpu/thread_context.hh"
 #include "arch/generic/isa.hh"
 
