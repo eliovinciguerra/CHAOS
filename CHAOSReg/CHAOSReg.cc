@@ -8,13 +8,11 @@
 #include <bitset>
 
 #include "cpu/base.hh"
-#include "cpu/o3/cpu.hh"
 #include "cpu/thread_context.hh"
 #include "arch/generic/isa.hh"
 
 namespace gem5
 {
-
     CHAOSReg::CHAOSReg(const CHAOSRegParams &p)
         : SimObject(p),
         cpu(dynamic_cast<BaseCPU *>(p.cpu)),
@@ -28,28 +26,26 @@ namespace gem5
         PCTarget(p.PCTarget),
         tickEvent([this] { this->tick(); }, name())
     {
-        if (!cpu) {
-            throw std::runtime_error("CHAOSReg: Invalid CPU pointer");
+        if (! (probability == 0.0)){
+            if (!cpu) {
+                throw std::runtime_error("CHAOSReg: Invalid CPU pointer");
+            }
+
+            logStream = simout.create("fault_injections.log", false, true);
+            if (!logStream || !logStream->stream()) {
+                panic("CHAOSReg: Could not open log file");
+            }
+
+            rng.seed(rd());
+            inter_fault_cycles_dist = std::geometric_distribution<unsigned>(probability);
+
+            unsigned next_fault_cycle_distance = inter_fault_cycles_dist(rng);
+            scheduleTickEvent(Cycles(next_fault_cycle_distance));
         }
-
-        logFile.open("fault_injections.log", std::ios::out);
-        if (!logFile.is_open()) {
-            throw std::runtime_error("CHAOSReg: Could not open log file");
-        }
-
-        rng.seed(rd());
-        inter_fault_cycles_dist = std::geometric_distribution<unsigned>(probability);
-
-        unsigned next_fault_cycle_distance = inter_fault_cycles_dist(rng);
-        scheduleTickEvent(Cycles(next_fault_cycle_distance));
     }
 
     CHAOSReg::~CHAOSReg()
-    {
-        if (logFile.is_open()) {
-            logFile.close();
-        }
-    }
+    {}
 
     gem5::CHAOSReg *
     gem5::CHAOSRegParams::create() const
@@ -91,42 +87,42 @@ namespace gem5
     void 
     CHAOSReg::processFault(ThreadID tid)
     {
-        ThreadContext *threadContext = cpu->getContext(tid);
+        gem5::ThreadContext *threadContext = cpu->getContext(tid);
         if (!threadContext)
             return;
-
-        BaseISA *isa = threadContext->getIsaPtr();
+    
+        gem5::BaseISA *isa = threadContext->getIsaPtr();
         if (!isa)
             return;
-
+    
         const auto &regClasses = isa->regClasses();
-        const RegClass *regClass = nullptr;
-
+        const gem5::RegClass *regClass = nullptr;
+    
         if (regTargetClass == "both") {
-            regClass = (rand() % 2 == 0) ? regClasses[IntRegClass] : regClasses[FloatRegClass];
+            regClass = (rand() % 2 == 0) ? regClasses[gem5::IntRegClass] : regClasses[gem5::FloatRegClass];
         } else if (regTargetClass == "integer") {
-            regClass = regClasses[IntRegClass];
+            regClass = regClasses[gem5::IntRegClass];
         } else if (regTargetClass == "floating_point") {
-            regClass = regClasses[FloatRegClass];
+            regClass = regClasses[gem5::FloatRegClass];
         }
-
+    
         if (!regClass || regClass->numRegs() == 0)
             return;
-
+    
         int randomReg = std::uniform_int_distribution<>(0, regClass->numRegs() - 1)(rng);
         int mask = faultMask.any() ? faultMask.to_ulong() : generateRandomMask(rng, numBitsToChange);
-        RegId regId(*regClass, randomReg);
-
+        gem5::RegId regId(*regClass, randomReg);
+    
         try {
-            RegVal regVal = threadContext->getReg(regId);
-
+            gem5::RegVal regVal = threadContext->getReg(regId);
+    
             std::string chosenFaultType = faultType;
             if (faultType == "random") {
                 static std::uniform_int_distribution<int> dis(0, 2);
                 const char *faultTypes[] = {"bit_flip", "stuck_at_zero", "stuck_at_one"};
                 chosenFaultType = faultTypes[dis(rng)];
             }
-
+    
             if (chosenFaultType == "stuck_at_zero") {
                 regVal &= ~mask;
             } else if (chosenFaultType == "stuck_at_one") {
@@ -134,15 +130,10 @@ namespace gem5
             } else if (chosenFaultType == "bit_flip") {
                 regVal ^= mask;
             }
-
-            o3::CPU * cpuO3 = dynamic_cast<o3::CPU *>(cpu);
-            if (cpuO3){
-                cpuO3->setArchReg(regId, regVal, threadContext->threadId());
-            }else{
-                threadContext->setReg(regId, regVal);
-            }
-
-            logFile << "Cycle: " << cpu->curCycle()
+    
+            threadContext->setReg(regId, regVal);
+    
+            *(logStream->stream())  << "Cycle: " << cpu->curCycle()
                     << ", CPU: " << cpu->name()
                     << ", Thread: " << tid
                     << ", Register: " << regClass->name() << "[" << randomReg << "]"
@@ -150,11 +141,11 @@ namespace gem5
                     << ", Mask: " << std::bitset<32>(mask)
                     << std::endl;
         } catch (const std::exception &e) {
-            logFile << "Error: Exception during fault injection. "
+            *(logStream->stream())  << "Error: Exception during fault injection. "
                     << "ThreadID: " << tid
                     << ", Error: " << e.what() << std::endl;
         } catch (...) {
-            logFile << "Error: Unknown exception during fault injection. "
+            *(logStream->stream())  << "Error: Unknown exception during fault injection. "
                     << "ThreadID: " << tid << std::endl;
         }
     }

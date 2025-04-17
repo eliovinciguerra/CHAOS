@@ -6,8 +6,9 @@
 #include <bitset>
 #include <string>
 #include <iostream>
-#include <fstream>
 #include <random>
+#include <stdexcept>
+#include "base/output.hh"
 
 namespace gem5 {
   class CHAOSCache : public Cache {
@@ -20,7 +21,7 @@ namespace gem5 {
       std::uniform_real_distribution<double> probDist;
       int firstClock, lastClock;
       std::string faultType;
-      std::ofstream logFile;
+      OutputStream *logStream;
       int tickToClockRatio;
       uint64_t generateRandomMask(std::mt19937 &rng, int numBitsToChange, unsigned size);
       void injectFault(PacketPtr pkt);

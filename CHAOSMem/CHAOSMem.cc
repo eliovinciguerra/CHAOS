@@ -24,9 +24,9 @@ namespace gem5 {
                 memory = p.mem;
             }
 
-            logFile.open("main_mem_injections.log", std::ios::out);
-            if (!logFile.is_open()) {
-                throw std::runtime_error("CHAOSMem: Could not open log file for writing");
+            logStream = simout.create("main_mem_injections.log", false, true);
+            if (!logStream || !logStream->stream()) {
+                panic("CHAOSMem: Could not open log file");
             }
 
             auto seed = rd();
@@ -37,11 +37,8 @@ namespace gem5 {
         }
     }
 
-    CHAOSMem::~CHAOSMem() {
-        if (logFile.is_open()) {
-            logFile.close();
-        }
-    }
+    CHAOSMem::~CHAOSMem() 
+    {}
 
     unsigned char 
     CHAOSMem::generateRandomMask(std::mt19937 &rng, int bitsToChange)
@@ -111,13 +108,11 @@ namespace gem5 {
         delete read_pkt;
         delete write_pkt;
 
-        logFile << "Tick: " << curTick() 
+        *(logStream->stream()) << "Tick: " << curTick() 
         << ", target addr: " << target_addr
         << ", Mask: " << std::bitset<8>(mask)
         << ", Fault Type: " << chosenFaultType
         << std::dec << std::endl;
-
-        logFile.flush();
 
         scheduleAttack(curTick() + inter_fault_tick_dist(rng) * tickToClockRatio);
     }

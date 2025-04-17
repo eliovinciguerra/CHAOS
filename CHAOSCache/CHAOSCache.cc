@@ -17,9 +17,9 @@ namespace gem5 {
         tickToClockRatio(p.tickToClockRatio)
     {
         if (probability != 0.0){
-            logFile.open("cache_injections.log", std::ios::out);
-            if (!logFile.is_open()) {
-                throw std::runtime_error("CHAOSCache: Could not open log file");
+            logStream = simout.create("cache_injections.log", false, true);
+            if (!logStream || !logStream->stream()) {
+                panic("CHAOSCache: Could not open log file");
             }
 
             auto seed = rd();
@@ -112,7 +112,7 @@ namespace gem5 {
             *data ^= mask;
         }
 
-        logFile << "Tick: " << curTick() 
+        *(logStream->stream()) << "Tick: " << curTick() 
             << ", Mask (decimal representation): " << mask
             << ", Fault Type: " << chosenFaultType
             << ", Pkt Size: " << size
@@ -120,9 +120,5 @@ namespace gem5 {
     }
 
     CHAOSCache::~CHAOSCache() 
-    {
-        if (logFile.is_open()) {
-            logFile.close();
-        }
-    }
+    {}
 } // namespace gem5

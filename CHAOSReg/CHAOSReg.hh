@@ -9,6 +9,9 @@
 #include "sim/eventq.hh"
 #include "cpu/base.hh"
 
+#include <stdexcept>
+#include "base/output.hh"
+
 namespace gem5
 {
   class CHAOSReg : public SimObject
@@ -23,7 +26,7 @@ namespace gem5
       std::string regTargetClass;
       Addr PCTarget;
       EventFunctionWrapper tickEvent;
-      std::ofstream logFile;
+      OutputStream *logStream;
 
       std::random_device rd;
       std::mt19937 rng;
