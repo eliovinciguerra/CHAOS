@@ -16,23 +16,43 @@ namespace gem5 {
     CHAOSMem::CHAOSMem(const CHAOSMemParams& p)
     : SimObject(p), probability(p.probability), bitsToChange(p.bitsToChange), 
     firstClock(p.firstClock), lastClock(p.lastClock), tickToClockRatio(p.tickToClockRatio), 
-    faultType(p.faultType), faultMask(static_cast<unsigned char>(std::stoi(p.faultMask, nullptr, 2))),
-    attackEvent([this]{ this->attackMemory(); }, name()) 
+    faultMask(static_cast<unsigned char>(std::stoi(p.faultMask, nullptr, 2))), faultType(p.faultType),
+    target_start(p.addr_start), target_end(p.addr_end), attackEvent([this]{ this->attackMemory(); }, name()) 
     {
-        if (! (probability == 0.0)){
+        if (probability > 0.0) {
             if (p.mem) {
                 memory = p.mem;
             }
 
-            logStream = simout.create("main_mem_injections.log", false, true);
-            if (!logStream || !logStream->stream()) {
-                panic("CHAOSMem: Could not open log file");
+            if (!memory) {
+                warn("CHAOSMem: Memory not available. Disabling fault injection.\n");
+                return;
             }
 
             auto seed = rd();
             rng.seed(seed);
             inter_fault_tick_dist = std::geometric_distribution<unsigned>(probability);
 
+            logStream = simout.create("main_mem_injections.log", false, true);
+            if (!logStream || !logStream->stream()) {
+                panic("CHAOSMem: Could not open log file");
+            }
+
+            Addr mem_start = memory->getAddrRange().start();
+            Addr mem_size = memory->getAddrRange().size();
+            
+            if (target_start < mem_start) {
+                target_start = mem_start;
+                warn("CHAOSMem: target_start adjusted to memory start\n");
+            }
+            
+            if (target_end == 0 || target_end < target_start) {
+                target_end = mem_start + mem_size - 1;
+                warn("CHAOSMem: target_end set to memory end\n");
+            }
+            
+            target_size = target_end - target_start + 1;
+            
             scheduleAttack(curTick() + inter_fault_tick_dist(rng) * tickToClockRatio);
         }
     }
@@ -62,18 +82,23 @@ namespace gem5 {
     void 
     CHAOSMem::attackMemory() {
         int cycle = curTick() / tickToClockRatio;
-        if (!(cycle >= firstClock && (cycle <= lastClock || lastClock == -1))) {
+        if (!(cycle >= firstClock && (cycle <= lastClock || lastClock == 0))) {
+            scheduleAttack(curTick() + inter_fault_tick_dist(rng) * tickToClockRatio);
             return;
         }
         
         if (!memory) {
             warn("CHAOSMem: Memory not available.\n");
+            scheduleAttack(curTick() + inter_fault_tick_dist(rng) * tickToClockRatio);
             return;
         }
 
-        Addr mem_start = memory->getAddrRange().start();
-        Addr mem_size = memory->getAddrRange().size();
-        Addr target_addr = mem_start + (random() % mem_size);
+        Addr target_addr = target_start + (random() % target_size);
+
+        // *(logTest->stream()) << "target_start: " << target_start
+        // << ", mem_size: " << mem_size
+        // << ", target_addr: " << target_addr
+        // << std::dec << std::endl;
 
         uint8_t data;
         RequestPtr req = std::make_shared<Request>(target_addr, sizeof(uint8_t), 0, 0);

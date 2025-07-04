@@ -129,6 +129,8 @@ The following parameters are configurable:
 - *faultMask*: A byte representing a bitmask to be applied to the target (from '0' to '255'). If set to '0', a random bitmask is generated.
 - *bitsToChange*: If *faultMask* is set to '0', this integer parameter determines the number of bits to be affected by the randomly generated bitmask.
 - *tickToClockRatio*: The ratio between gem5 ticks and clock cycle.
+- *addr_start*: Start address, specifies the starting address of CHAOSMem.
+- *addr_end*: End address, specifies the last valid address usable by CHAOSMem.
 
 Each parameter is assigned a default value as follows:
 - *probability*: 0.0.
@@ -138,6 +140,8 @@ Each parameter is assigned a default value as follows:
 - *faultMask*: '0'.
 - *bitsToChange*: 1.
 - *tickToClockRatio*: 1000.
+- *addr_start*: NULL.
+- *addr_end*: NULL.
 
 After the simulation run, a log file named *main_mem_injections.log* will be generated. Each line in the file will record an injected fault, containing the following details:
 - *Tick*: the tick in which the fault is injected.
@@ -194,7 +198,7 @@ In the */CHAOS/examples* directory, you can find *simple-riscv.py*, which has al
 ## Authors
 
 - [@eliovinciguerra](https://www.github.com/eliovinciguerra)
-- [@DanieleZinghirino](https://github.com/DanieleZinghirino)
 - [@Haimrich](https://www.github.com/Haimrich)
 - [@mpalesi](https://github.com/mpalesi)
+- [@DanieleZinghirino](https://github.com/DanieleZinghirino)
 

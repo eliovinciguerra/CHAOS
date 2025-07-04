@@ -35,8 +35,8 @@ namespace gem5 {
     CHAOSCache::recvTimingReq(PacketPtr pkt) 
     {
         if (pkt->isWrite() && injectOnWrite) {
-            int cycle = curTick() / tickToClockRatio;
-            if (probDist(rng) < probability && (cycle >= firstClock && (cycle <= lastClock || lastClock == -1))) {
+            Tick cycle = curTick() / tickToClockRatio;
+            if (probDist(rng) < probability && (cycle >= firstClock && (cycle <= lastClock || lastClock == 0))) {
                 injectFault(pkt);
             }
         }
@@ -44,8 +44,8 @@ namespace gem5 {
         Cache::recvTimingReq(pkt);
 
         if (pkt->isResponse() && injectOnRead) {
-            int cycle = curTick() / tickToClockRatio;
-            if (probDist(rng) < probability && (cycle >= firstClock && (cycle <= lastClock || lastClock == -1))) {
+            Tick cycle = curTick() / tickToClockRatio;
+            if (probDist(rng) < probability && (cycle >= firstClock && (cycle <= lastClock || lastClock == 0))) {
                 injectFault(pkt);
             }
         }
@@ -55,8 +55,8 @@ namespace gem5 {
     CHAOSCache::recvAtomic(PacketPtr pkt) 
     {
         if (pkt->isWrite() && injectOnWrite) {
-            int cycle = curTick() / tickToClockRatio;
-            if (probDist(rng) < probability && (cycle >= firstClock && (cycle <= lastClock || lastClock == -1))) {
+            Tick cycle = curTick() / tickToClockRatio;
+            if (probDist(rng) < probability && (cycle >= firstClock && (cycle <= lastClock || lastClock == 0))) {
                 injectFault(pkt);
             }
         }
@@ -64,8 +64,8 @@ namespace gem5 {
         Tick latency = Cache::recvAtomic(pkt);
 
         if (pkt->isResponse() && injectOnRead) {
-            int cycle = curTick() / tickToClockRatio;
-            if (probDist(rng) < probability && (cycle >= firstClock && (cycle <= lastClock || lastClock == -1))) {
+            Tick cycle = curTick() / tickToClockRatio;
+            if (probDist(rng) < probability && (cycle >= firstClock && (cycle <= lastClock || lastClock == 0))) {
                 injectFault(pkt);
             }
         }

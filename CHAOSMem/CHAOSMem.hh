@@ -27,7 +27,7 @@ namespace gem5 {
                           If "faultMask" is not "0", this parameter has no effect on the simulation.  
                           Allowed values -> integers between 1 and 32  
                           Default value -> 32 */
-      int firstClock, lastClock;/* Range of clock cycles during which fault injection is enabled  
+      uint64_t firstClock, lastClock;/* Range of clock cycles during which fault injection is enabled  
                                 Default value for firstClock -> 0  
                                 Default value for lastClock -> last simulation clock cycle */
       int tickToClockRatio;
@@ -43,10 +43,12 @@ namespace gem5 {
                             Default value -> "random" */
                             
       memory::AbstractMemory* memory;
+      Addr target_start, target_end, target_size;
       std::random_device rd;
       std::mt19937 rng;
       unsigned char generateRandomMask(std::mt19937 &rng, int numBitsToChangePerByte);
       OutputStream *logStream;         // Log file to track events
+      OutputStream *logTest;
       std::geometric_distribution<unsigned> inter_fault_tick_dist;
 
       EventFunctionWrapper attackEvent;

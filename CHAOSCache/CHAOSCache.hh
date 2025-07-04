@@ -19,7 +19,7 @@ namespace gem5 {
       bool injectOnWrite;
       int numBitsToChange;
       std::uniform_real_distribution<double> probDist;
-      int firstClock, lastClock;
+      uint64_t firstClock, lastClock;
       std::string faultType;
       OutputStream *logStream;
       int tickToClockRatio;

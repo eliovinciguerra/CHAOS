@@ -14,7 +14,7 @@ RISC_V_GNU_TOOLCHAIN_REPO = https://github.com/riscv-collab/riscv-gnu-toolchain.
 RISC_V_GNU_TOOLCHAIN_DIR = riscv-gnu-toolchain
 RISC_V_GNU_TOOLCHAIN_CONFIG_DIR = /opt/riscv
 
-all: install_requirements clone_gem5 move_chaos_reg move_chaos_tags move_chaos_mem install_gem5_requirements build_gem5 #clone_riscv_toolchain build_riscv_toolchain copy_riscv_lib
+all: install_requirements clone_gem5 move_chaos_reg move_chaos_tags move_chaos_mem install_gem5_requirements build_gem5 clone_riscv_toolchain build_riscv_toolchain copy_riscv_lib
 
 chaosreg: clone_gem5 move_chaos_reg install_gem5_requirements build_gem5
 
@@ -27,7 +27,6 @@ toolchain: clone_riscv_toolchain build_riscv_toolchain copy_riscv_lib
 install_requirements:
 	@apt-get update
 	@apt-get install build-essential git m4 scons zlib1g zlib1g-dev libprotobuf-dev protobuf-compiler libprotoc-dev libgoogle-perftools-dev emacs wget python3-dev libboost-all-dev pkg-config bison python3-venv meson ninja-build libglib2.0-dev libpixman-1-dev gawk texinfo flex libgmp-dev libmpc-dev libmpfr-dev lftp python3-pip python3-six
-	@apt-get install --only-upgrade libnccl2
 
 clone_gem5:
 	@if [ ! -d "$(GEM5_DIR)" ]; then \
@@ -48,7 +47,7 @@ move_chaos_tags:
 	@if [ -d "$(CHAOS_CACHE_DIR)" ]; then \
 		cp -rf $(CHAOS_CACHE_DIR) $(GEM5_CACHE_DIR); \
 	else \
-		echo "CHAOSTags folder not found, does it exist?"; \
+		echo "CHAOSCache folder not found, does it exist?"; \
 		exit 1; \
 	fi
 
@@ -85,4 +84,4 @@ build_riscv_toolchain:
 copy_riscv_lib:
 	@cp -r $(RISC_V_GNU_TOOLCHAIN_CONFIG_DIR)/sysroot/lib/* /lib/
 
-.PHONY: all install_requirements clone_gem5 move_chaos install_gem5_requirements build_gem5 #clone_riscv_toolchain build_riscv_toolchain copy_riscv_lib
+.PHONY: all install_requirements clone_gem5 move_chaos install_gem5_requirements build_gem5 clone_riscv_toolchain build_riscv_toolchain copy_riscv_lib

@@ -20,7 +20,7 @@ namespace gem5
       BaseCPU *cpu;
       float probability;
       int numBitsToChange;
-      int firstClock, lastClock;
+      uint64_t firstClock, lastClock;
       std::string faultType;
       std::bitset<32> faultMask;
       std::string regTargetClass;

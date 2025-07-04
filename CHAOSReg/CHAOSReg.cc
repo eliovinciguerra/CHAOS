@@ -165,7 +165,7 @@ namespace gem5
             }
         }
 
-        if (allThreadsHalted || (lastClock != -1 && cpu->curCycle() > lastClock)) {
+        if (allThreadsHalted || (lastClock != 0 && cpu->curCycle() > lastClock)) {
             unscheduleTickEvent();
             return;
         }
