@@ -44,7 +44,6 @@ import os
 
 thispath = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.abspath(thispath+"/../gem5/configs"))
-print(os.path.abspath(thispath+"/../gem5/configs"))
 from common import SimpleOpts
 
 # import the m5 (gem5) library created when gem5 is built
@@ -63,8 +62,11 @@ from caches import *
 # grab the specific path to the binary
 default_binary = os.path.join(
     thispath,
-    "./test_program/nn",
+    # "./test_program/nn",
+    "../gem5/tests/test-progs/hello/bin/riscv/linux/hello",
 )
+
+print(default_binary)
 
 # Binary to execute
 SimpleOpts.add_option("binary", nargs="?", default=default_binary)
@@ -94,9 +96,6 @@ system.cpu.dcache = L1DCache(args)
 # Connect the instruction and data caches to the CPU
 system.cpu.icache.connectCPU(system.cpu)
 system.cpu.dcache.connectCPU(system.cpu)
-
-# Fault injection probabilities
-system.cpu.dcache.probability = 0.1
 
 # Create a memory bus, a coherent crossbar, in this case
 system.l2bus = L2XBar()
@@ -137,6 +136,11 @@ process.cmd = [args.binary]
 # Set the cpu to use the process as its workload and create thread contexts
 system.cpu.workload = process
 system.cpu.createThreads()
+
+# Fault injection probabilities
+system.CHAOSReg = CHAOSReg(cpu=system.cpu, probability=0.0001)
+system.CHAOSCache = CHAOSCache(target_cache = system.l2cache, probability = 0.0001)
+system.CHAOSMem = CHAOSMem(mem=system.mem_ctrl.dram, probability=0.0001)
 
 # set up the root SimObject and start the simulation
 root = Root(full_system=False, system=system)

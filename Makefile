@@ -14,11 +14,11 @@ RISC_V_GNU_TOOLCHAIN_REPO = https://github.com/riscv-collab/riscv-gnu-toolchain.
 RISC_V_GNU_TOOLCHAIN_DIR = riscv-gnu-toolchain
 RISC_V_GNU_TOOLCHAIN_CONFIG_DIR = /opt/riscv
 
-all: install_requirements clone_gem5 move_chaos_reg move_chaos_tags move_chaos_mem install_gem5_requirements build_gem5 clone_riscv_toolchain build_riscv_toolchain copy_riscv_lib
+all: install_requirements clone_gem5 move_chaos_reg move_chaos_tags move_chaos_mem install_gem5_requirements build_gem5
 
 chaosreg: clone_gem5 move_chaos_reg install_gem5_requirements build_gem5
 
-chaostags: clone_gem5 move_chaos_tags install_gem5_requirements build_gem5
+chaoscache: clone_gem5 move_chaos_tags install_gem5_requirements build_gem5
 
 chaosmem: clone_gem5 move_chaos_mem install_gem5_requirements build_gem5
 
@@ -84,4 +84,4 @@ build_riscv_toolchain:
 copy_riscv_lib:
 	@cp -r $(RISC_V_GNU_TOOLCHAIN_CONFIG_DIR)/sysroot/lib/* /lib/
 
-.PHONY: all install_requirements clone_gem5 move_chaos install_gem5_requirements build_gem5 clone_riscv_toolchain build_riscv_toolchain copy_riscv_lib
+.PHONY: all install_requirements clone_gem5 move_chaos install_gem5_requirements build_gem5

@@ -19,45 +19,68 @@
 namespace gem5 {
 
   class CHAOSMem : public SimObject {
-    private:
-      float probability;  /* Probability of injecting a fault in a given cycle
-                          Allowed values -> float between 0 and 1
-                          Default value -> 0 */
-      int bitsToChange;   /* Number of bits to modify for fault injection  
-                          If "faultMask" is not "0", this parameter has no effect on the simulation.  
-                          Allowed values -> integers between 1 and 32  
-                          Default value -> 32 */
-      uint64_t firstClock, lastClock;/* Range of clock cycles during which fault injection is enabled  
-                                Default value for firstClock -> 0  
-                                Default value for lastClock -> last simulation clock cycle */
-      int tickToClockRatio;
-      unsigned char faultMask;/* Bitmask to apply to the target register's bits  
-                              Allowed values -> A string containing bits ranging from "0" to "11111111111111111111111111111111"  
-                              Default value -> "0" (if set to "0", a random bitmask of numBitsToChange bits is generated) */
-
-      std::string faultType;/* Type of modification to apply to the target register's bits  
-                            Allowed values -> "bit_flip",  
-                                              "stuck_at_zero",  
-                                              "stuck_at_one",  
-                                              "random" (randomly selects one of the above methods)  
-                            Default value -> "random" */
-                            
-      memory::AbstractMemory* memory;
-      Addr target_start, target_end, target_size;
-      std::random_device rd;
-      std::mt19937 rng;
-      unsigned char generateRandomMask(std::mt19937 &rng, int numBitsToChangePerByte);
-      OutputStream *logStream;         // Log file to track events
-      OutputStream *logTest;
-      std::geometric_distribution<unsigned> inter_fault_tick_dist;
-
-      EventFunctionWrapper attackEvent;
-  
     public:
       CHAOSMem(const CHAOSMemParams& p);
       ~CHAOSMem();
+
+    private:
+      enum class FaultType {
+          BitFlip,
+          StuckAtZero,
+          StuckAtOne,
+          Random
+      };
+      
+      struct PermanentFault {
+        FaultType fault_type;
+        uint8_t mask;
+        bool update;
+      };
+
+      memory::AbstractMemory* memory;
+      float probability;
+      int num_bits_to_change;
+      int corruption_size;
+      uint64_t first_clock, last_clock;
+      FaultType fault_type_enum;
+      unsigned char fault_mask;
+      int tick_to_clock_ratio;
+      float bit_flip_prob, stuck_at_zero_prob, stuck_at_one_prob;
+      int cycles_permament_fault_check;
+      bool write_log;
+      Addr target_start, target_end, target_size;
+
+      EventFunctionWrapper attackEvent, periodicCheck;
+      Tick first_tick, last_tick, ticks_permament_fault_check;
+      
+      unsigned char generateRandomMask(std::mt19937 &rng, int bits_to_change, int len);
       void attackMemory();
       void scheduleAttack(Tick time);
+      void scheduleCheckPermanentFault(Tick time);
+      void checkPermanent();
+      const char* faultTypeToString(CHAOSMem::FaultType f);
+      static FaultType stringToFaultType(const std::string &s);
+
+      std::geometric_distribution<unsigned> inter_fault_tick_dist;
+      std::discrete_distribution<int> random_fault_distribution;
+      
+      std::mt19937 rng;
+      std::random_device rd;
+      std::map<Addr, PermanentFault> permanent_faults;
+      OutputStream *log_stream;
+
+      struct CHAOSMemStats : public statistics::Group
+      {
+        statistics::Scalar numFaultsInjected;
+        statistics::Scalar numBitFlips;
+        statistics::Scalar numStuckAtZero;
+        statistics::Scalar numStuckAtOne;
+        statistics::Scalar numPermanentFaults;
+        
+        CHAOSMemStats(statistics::Group *parent);
+      };
+
+      std::unique_ptr<CHAOSMemStats> stats;
   };
 
 } // namespace gem5

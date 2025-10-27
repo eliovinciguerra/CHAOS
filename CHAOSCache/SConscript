@@ -1,4 +1,6 @@
 Import('*')
 
-SimObject('CHAOSCache.py', sim_objects=['CHAOSCache'], enums=[])
+SimObject('CHAOSCache.py', sim_objects=['CHAOSCache'])
 Source('CHAOSCache.cc')
+
+DebugFlag('CHAOSCache')
